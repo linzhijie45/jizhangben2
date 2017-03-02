@@ -1,0 +1,660 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta name="renderer" content="webkit">
+    <meta http-equiv="X-FRAME-OPTIONS" content="DENY"/>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=9">
+    <title>账本系统</title>
+    <link rel="stylesheet" type="text/css" href="easyui/themes/default/easyui.css" />
+    <link rel="stylesheet" type="text/css" href="easyui/themes/icon.css" />
+    <script type="text/javascript" src="easyui/jquery-3.0.0.min.js"></script>
+    <script type="text/javascript" src="easyui/jquery.easyui.min.js"></script>
+    <script type="text/javascript" src="easyui/locale/easyui-lang-zh_CN.js"></script>
+    <script type="text/javascript" src="js/dateCore.js"></script>
+    <script type="text/javascript" src="Default.js"></script>
+</head>
+<body class="easyui-layout" style="overflow-y: hidden" scroll="no">
+ <div region="north" style="overflow: hidden; height: 25px; background: #D2E0F2;"
+        border="false">
+        <div style="height: 25px; margin-right: 10px; line-height: 25px; text-align: right;">
+            我的简单记账系统</div>
+    </div>
+    <div region="center" split="true" style="overflow: hidden;">
+        <div id="tabs" class="easyui-tabs" fit="true" border="false">
+            <div title="账单明细" style="padding: 5px; overflow: hidden;">
+                <div id="grid">
+                </div>
+            </div>
+            <div title="账单统计" style="padding: 5px; overflow: hidden;">
+                <div id="gridt">
+                </div>
+            </div>
+        </div>
+    </div>
+    <div region="south" style="height: 20px; background: #D2E0F2;" border="false">
+        <div style="text-align: center;">
+            &copy; Copyright 2011 <a href="http://Wwwl.80.Hk">sobne.cn</a> All Rights Reserved</div>
+    </div>
+    <div region="west" split="true" title="快捷面板" style="width: 200px; overflow: hidden;">
+        <div style="margin: 8px;">
+            <form id="ff" method="post">
+            <div id="cld" name="cld" style="width:180px;height:180px;"></div>
+            <div style=" margin-top:20px;">
+                记账日期:<br />
+                <input id="ConsumeDate" name="ConsumeDate" required="true"/>
+            </div>
+            <div>
+                记账金额:<br />
+                <input id="ConsumeAmount" name="ConsumeAmount" class="easyui-numberbox" min="1" type="text" style="width: 160px" required="true"/>
+            </div>
+            <div>
+                记账大类:<br />
+                <select id="Category" name="Category" class="easyui-combobox" style="width: 100px;" required="true">
+                </select>
+            </div>
+            <div>
+                记账小类:<br />
+                <select id="SubCategory" name="SubCategory" class="easyui-combobox" style="width: 160px;" required="true">
+                </select>
+            </div>
+            <div>
+                记账描述:<br />
+                <textarea id="AccountTips" name="AccountTips" style="height: 60px;width:160px;"></textarea>
+            </div>
+            <div style=" margin-top:10px;background:#efefef;width:166px; text-align:right">
+                <a id="btnupdate" href="javascript:saveAccount();" iconCls="icon-save" class="easyui-linkbutton" plain="true">修改</a>
+                <a id="btnadd" href="javascript:addAccount();" iconCls="icon-add" class="easyui-linkbutton" plain="true">添加</a>
+            </div>
+            </form>
+        </div>
+    </div>
+    <div region="east" split="true" title="条件过滤" style="width: 200px; overflow: hidden;">
+        <div style="margin: 8px">
+            <div>
+                <div id="cld1" name="cld1" style="width:180px;height:180px;"></div>
+                <br /><div id="cld2" name="cld2" style="width:180px;height:180px;"></div>
+                <input id="txtcld1" type="hidden"/>
+                <input id="txtcld2" type="hidden"/>
+            </div>
+            <div style=" margin-top:5px; display:none">
+                <br />记账大类:<br />
+                <select id="CategoryFilter" name="CategoryFilter" class="easyui-combobox" style="width: 120px;">
+                </select>
+                <br />记账小类:<br />
+                <select id="SubCategoryFilter" name="SubCategoryFilter" class="easyui-combobox" style="width: 180px;">
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <div id="search-window" title="查询窗口" style="width: 350px; height: 200px;">
+        <div style="padding: 20px">
+            <div style=" margin-top:10px;">
+                记账日期:
+                <input id="date1" name="date1" class="easyui-datebox" style="width: 100px;"/>
+                -
+                <input id="date2" name="date2" class="easyui-datebox" style="width: 100px;"/>
+            </div>
+            <div style=" margin-top:10px;">
+                记账类型:
+                <select id="cg" name="cg" class="easyui-combobox" style="width: 200px;">
+                </select>
+            </div>
+        </div>
+        <div style="text-align: center; padding: 5px;">
+            <a href="javascript:void(0)" onclick="SearchOK()" id="btn-search" icon="icon-ok">确定</a>
+            <a href="javascript:void(0)" onclick="closeSearchWindow()" id="btn-search-cancel" icon="icon-cancel">关闭</a>
+        </div>
+    </div>
+    <div id="Dlg-Edit" title="编辑窗口" style="width: 300px; height: 330px;">
+        <div style="padding: 20px">
+            <form method="post">
+                <div style=" margin-top:10px;">
+                    记账日期:
+                    <input id="Text1" name="ConsumeDate" class="easyui-datebox" required="true"/>
+                </div>
+                <div>
+                    记账金额:
+                    <input id="Text2" name="ConsumeAmount" class="easyui-numberbox" min="1" type="text" style="width: 160px" required="true"/>
+                </div>
+                <div>
+                    记账大类:
+                    <select id="dlg_Category" name="Category" class="easyui-combobox" style="width: 100px;" required="true">
+                    </select>
+                </div>
+                <div>
+                    记账小类:
+                    <select id="dlg_SubCategory" name="SubCategory" class="easyui-combobox" style="width: 160px;" required="true">
+                    </select>
+                </div>
+                <div>
+                    记账描述:</br>
+                    <textarea id="Textarea1" name="AccountTips" style="height: 80px;width:220px;"></textarea>
+                </div>
+            </form>
+        </div>
+    </div>
+    <span id="searchTool" style="display: none;">
+        搜索:<input type="text" id="txtSearch" title="请输入关键字" onkeydown="if(event.keyCode==13) toolSearch();"/><a href="javascript:toolSearch();" iconcls="icon-search" class="easyui-linkbutton" plain="true"></a>
+    </span>
+    <div id="mm1" style="width:150px;">
+        <div onclick="addrow()">表格内</div>
+        <div onclick="add()">弹出窗口</div>
+    </div>
+
+<script type="text/javascript" >
+var LocalCategory = [{
+    "id": "衣",
+    "text": "衣"
+}, {
+    "id": "食",
+    "text": "食"
+}, {
+    "id": "住",
+    "text": "住"
+}, {
+    "id": "行",
+    "text": "行"
+}, {
+    "id": "其他",
+    "text": "其他"
+}];
+var Category;
+var grid;
+var gridt;
+var searchWin;
+var consumedate;
+var editcount = 0;
+var dlg_Edit;
+var dlg_Edit_form;
+$(function () {
+    dlg_Edit = $('#Dlg-Edit').dialog({
+        closed: true,
+        modal: true,
+        toolbar: [{
+            text: '保存',
+            iconCls: 'icon-save',
+            handler: saveData
+        }, '-', {
+            text: '关闭',
+            iconCls: 'icon-no',
+            handler: function () {
+                dlg_Edit.dialog('close');
+            }
+        }]
+    });
+    dlg_Edit_form = dlg_Edit.find('form');
+    $.getJSON("ajax/AccountBook.ashx?action=getCategory",
+        function (data) {
+            Category = data; //nothing to do,who can tell me why?
+        }
+    );
+    $('#btn-search,#btn-search-cancel').linkbutton();
+    searchWin = $('#search-window').window({
+        closed: true,
+        modal: false
+    });
+    $('#btnupdate').hide();
+    consumedate = $('#ConsumeDate').datebox({});
+    var fdatenow = new Date().Format('yyyy-MM-dd');
+    consumedate.datebox('setValue', fdatenow);
+    $('#cld,#cld1,#cld2').calendar({
+        onSelect: function (date) {
+            var cldid = this.id;
+            if (cldid == "cld") {
+                selectCalendar(date);
+            }
+            else {
+                var fdate = date.Format('yyyy-MM-dd');
+                $("#txt" + cldid).val(fdate);
+                filterGrid();
+            }
+        }
+    });
+    $('#Category,#CategoryFilter,#dlg_Category').combobox({
+        //data: Category,
+        url: 'ajax/AccountBook.ashx?action=getCategory',
+        valueField: 'id',
+        textField: 'text',
+        onChange: function (newValue, oldValue) {
+            $('#SubCategory,#SubCategoryFilter,#dlg_SubCategory').combobox({
+                url: 'ajax/AccountBook.ashx?action=getsubCategory&Category=' + newValue,
+                valueField: 'id',
+                textField: 'text'
+            });
+        }
+    });
+    $('#SubCategory,#SubCategoryFilter,#cg,#dlg_SubCategory').combobox({
+        url: 'ajax/AccountBook.ashx?action=getsubCategory',
+        valueField: 'id',
+        textField: 'text'
+    });
+    grid = $('#grid').datagrid({
+        methord: 'get',
+        url: 'ajax/AccountBook.ashx?action=default&ran=' + Math.random(),
+        sortName: 'ConsumeDate',
+        sortOrder: 'desc',
+        idField: 'RecordID',
+        frozenColumns: [[
+        { field: 'ck', checkbox: true }
+        ]],
+        columns: [[
+        { field: 'ConsumeDate', title: '记账日期', width: 60, sortable: true, editor: 'datebox' },
+        { field: 'Category', title: '记账大类', width: 60, sortable: true,
+            editor: { type: 'combobox',
+                options: { valueField: 'id', textField: 'text',
+                    url:'ajax/AccountBook.ashx?action=getCategory',//data: LocalCategory, 
+                    required: true }
+            }
+        },
+        { field: 'SubCategory', title: '记账小类', width: 80, sortable: true, editor: 'text' },
+        { field: 'ConsumeAmount', title: '记账金额', width: 60, sortable: true, editor: 'numberbox', align: 'right',
+            formatter: function (value, rowData, rowIndex) {
+                if (value > 500)
+                    return '<span style="color:red">' + value + '</span>';
+                else
+                    return value;
+            }
+        },
+        { field: 'AccountTips', title: '记账描述', width: 250, editor: 'textarea' },
+        { field: 'RecordDate', title: '录入时间', width: 120 },
+        { field: 'action', title: 'Action', width: 80, align: 'center',
+            formatter: function (value, row, index) {
+                if (row.Category != "合计:") {
+                    if (row.editing) {
+                        var s = '<a href="#" onclick="saverow(' + index + ')">Save</a> ';
+                        var c = '<a href="#" onclick="cancelrow(' + index + ')">Cancel</a>';
+                        return s + c;
+                    } else {
+                        var e = '<a href="#" onclick="editrow(' + index + ')">Edit</a> ';
+                        var d = '<a href="#" onclick="del(' + row.RecordID + ')">Delete</a>';
+                        return e + d;
+                    }
+                }
+            }
+        }
+        ]],
+        showFooter: true,
+        fit: true,
+        striped: true,
+        rownumbers: true,
+        fitColumns: true,
+        toolbar: [{
+            id: "menuadd",
+            text: '新增',
+            iconCls: 'icon-add'
+        }, '-', {
+            text: '修改',
+            iconCls: 'icon-edit',
+            handler: edit
+        }, '-', {
+            text: '删除',
+            iconCls: 'icon-remove',
+            handler: delSelected
+        }, '-', {
+            text: '高级查询',
+            iconCls: 'icon-search',
+            handler: OpensearchWin
+        }, '-', {
+            text: '所有',
+            iconCls: 'icon-reload',
+            handler: showAll
+        }, '-', {
+            text: '保存更改',
+            iconCls: 'icon-save',
+            handler: savechange
+        }, '-'
+        ],
+        onClickRow: function (rowIndex, rowData) {
+            editAccount(rowData.RecordID);
+        },
+        onBeforeEdit: function (index, row) {
+            row.editing = true;
+            updateActions();
+            editcount++;
+        },
+        onAfterEdit: function (index, row) {
+            row.editing = false;
+            updateActions();
+            editcount--;
+        },
+        onCancelEdit: function (index, row) {
+            row.editing = false;
+            updateActions();
+            editcount--;
+        },
+        //        onBeforeEdit: function (index, row) {
+        //            row.editing = true;
+        //            $('#grid').datagrid('refreshRow', index);
+        //            editcount++;
+        //        },
+        //        onAfterEdit: function (index, row) {
+        //            row.editing = false;
+        //            $('#grid').datagrid('refreshRow', index);
+        //            editcount--;
+        //        },
+        //        onCancelEdit: function (index, row) {
+        //            row.editing = false;
+        //            $('#grid').datagrid('refreshRow', index);
+        //            editcount--;
+        //        },
+        onLoadSuccess: function () {
+            $('.datagrid-toolbar').append($('#searchTool'));
+            $('#searchTool').show();
+        }
+    });
+    $('#menuadd .l-btn-left').attr('class', 'easyui-splitbutton').menubutton({ menu: '#mm1' });
+    gridt = $('#gridt').datagrid({
+        title: '统计表格',
+        methord: 'get',
+        url: 'ajax/AccountBook.ashx?action=default&type=sum&ran=' + Math.random(),
+        columns: [[
+        { field: 'Category', title: '记账大类', width: 40, sortable: false,
+            formatter: function (value, rec) {
+                if (value == "合计:")
+                    return '<span style="color:red">' + value + '</span>';
+                else
+                    return value;
+            }
+        },
+        { field: 'ConsumeAmount', title: '记账金额', width: 60, sortable: false, align: 'right',
+            formatter: function (value, rec) {
+                if (rec.Category == "合计:") {
+                    return '<span style="color:red">' + value + '</span>';
+                }
+                else
+                    return value;
+            }
+        }
+        ]],
+        showFooter: true,
+        fitColumns: true
+    });
+    $('body').layout();
+
+}); 
+
+
+//#region dialog
+function edit() {
+    var rows = grid.datagrid('getSelections');
+    var num = rows.length;
+    if (num == 0) {
+        $.messager.show({
+            title: '提示',
+            msg: '请选择一条记录进行操作!',
+            timeout: 3000,
+            showType: 'slide'
+        });
+        return;
+    }
+    else if (num > 1) {
+        $.messager.show({
+            title: '提示',
+            msg: '您选择了多条记录,只能选择一条记录进行修改!',
+            timeout: 3000,
+            showType: 'slide'
+        });
+        return;
+    }
+    else {
+        dlg_Edit.dialog('open');
+        dlg_Edit_form.form('load', 'ajax/AccountBook.ashx?action=getsingle&id=' + rows[0].RecordID);
+        dlg_Edit_form.url = 'ajax/AccountBook.ashx?action=save&id=' + rows[0].RecordID;
+    }
+}
+function add() {
+    dlg_Edit.dialog('open');
+    dlg_Edit_form.form('clear');
+    dlg_Edit_form.url = 'ajax/AccountBook.ashx?action=save';
+}
+function saveData() {
+    dlg_Edit_form.form('submit', {
+        url: dlg_Edit_form.url,
+        onSubmit: function () {
+            return $(this).form('validate');
+        },
+        success: function (data) {
+            eval('data=' + data);
+            if (data.success) {
+                grid.datagrid('reload');
+                gridt.datagrid('reload');
+                dlg_Edit.dialog('close');
+            } else {
+                $.messager.alert('错误', data.msg, 'error');
+            }
+        }
+    });
+}
+//#endregion
+
+//#region inlineEdit function
+function addrow() { 
+    if (editcount > 0){
+        $.messager.alert('警告','当前还有'+editcount+'记录正在编辑，不能增加记录。');
+        return;
+    }
+    var newrow={
+        RecordID:'',
+        ConsumeDate:'',
+        ConsumeAmount:'',
+        Category:'',
+        SubCategory: '',
+        AccountTips: ''
+    };
+    grid.datagrid('insertRow', { index: 0, row: newrow });
+    grid.datagrid('beginEdit', 0);
+
+//    var row = $('#grid').datagrid('getSelected');
+//    if (row) {
+//        var index = $('#grid').datagrid('getRowIndex', row);
+//    } else {
+//        index = 0;
+//    }
+//    $('#grid').datagrid('insertRow', {
+//        index: index,
+//        row: newrow
+//    });
+//    $('#grid').datagrid('selectRow', index);
+//    $('#grid').datagrid('beginEdit', index);
+
+//    grid.datagrid('appendRow', newrow);
+//    var lastIndex = grid.datagrid('getRows').length-1;
+//    grid.datagrid('beginEdit', lastIndex);
+}
+function editrow(index) {
+    grid.datagrid('beginEdit', index);
+}
+function deleterow(index) {
+    $.messager.confirm('Confirm', 'Are you sure?', function (r) {
+        if (r) {
+            grid.datagrid('deleteRow', index);
+        }
+    });
+}
+function saverow(index) {
+    grid.datagrid('endEdit', index);
+    savechange();
+}
+function cancelrow(index) {
+    grid.datagrid('cancelEdit', index);
+}
+function savechange() {
+    var rows = grid.datagrid('getChanges');
+    if (rows.length > 0) {
+        var account = {
+            'action': 'saveinline',
+            'RecordID': rows[0].RecordID,
+            'ConsumeDate': rows[0].ConsumeDate,
+            'ConsumeAmount': rows[0].ConsumeAmount,
+            'Category': rows[0].Category,
+            'SubCategory': rows[0].SubCategory,
+            'AccountTips': rows[0].AccountTips
+        }
+        $.post('ajax/AccountBook.ashx',
+            account,
+            function (result) {
+                grid.datagrid('reload');
+                gridt.datagrid('reload');
+            }
+        );
+    }
+    //grid.datagrid('acceptChanges');
+}
+function updateActions() {
+    var rowcount = $('#grid').datagrid('getRows').length;
+    for (var i = 0; i < rowcount; i++) {
+        $('#grid').datagrid('updateRow', {
+            index: i,
+            row: { action: '' }
+        });
+    }
+}
+//#endregion
+
+
+//#region filter search grid
+function filterGrid() {
+    var date1 = $("#txtcld1").val();
+    var date2 = $("#txtcld2").val();
+    if (date1.length > 0 && date2.length > 0) {
+        $('#grid').datagrid('options').url = 'ajax/AccountBook.ashx?action=filter&date1=' + date1 + '&date2=' + date2;
+        $('#grid').datagrid("reload");
+        $('#gridt').datagrid('options').url = 'ajax/AccountBook.ashx?action=filter&type=sum&date1=' + date1 + '&date2=' + date2;
+        $('#gridt').datagrid("reload");
+    }
+}
+function selectCalendar(date) {
+    var fdate = date.Format('yyyy-MM-dd');
+    consumedate.datebox('setValue', fdate);
+    $('#grid').datagrid('options').url = 'ajax/AccountBook.ashx?action=get&date=' + fdate;
+    $('#grid').datagrid("reload");
+    $('#gridt').datagrid('options').url = 'ajax/AccountBook.ashx?action=get&type=sum&date=' + fdate;
+    $('#gridt').datagrid("reload");
+    //    grid.datagrid({ url: 'ajax/AccountBook.ashx?action=get&date=' + fdate });
+    //    gridt.datagrid({ url: 'ajax/AccountBook.ashx?action=get&date=' + fdate });
+}
+
+function OpensearchWin() {
+    searchWin.window('open');
+}
+function toolSearch() {
+    var txt = $('#txtSearch').val();
+    if (txt.length > 0) {
+        $('#grid').datagrid('options').url = 'ajax/AccountBook.ashx?action=query&search=' + escape(txt);
+        $('#grid').datagrid("reload");
+        $('#gridt').datagrid('options').url = 'ajax/AccountBook.ashx?action=query&type=sum&search=' + escape(txt);
+        $('#gridt').datagrid("reload");
+    }
+}
+function SearchOK() {
+    $('#grid').datagrid('options').url = 'ajax/AccountBook.ashx?action=hightsearch&date1=' + $('#date1').datebox("getText") + '&date2=' + $('#date2').datebox("getText") + '&cg=' + $('#cg').combobox("getText");
+
+//    $("#grid").datagrid({ url: 'ajax/AccountBook.ashx',
+//        queryParams: {
+//            action: "hightsearch",
+//            date1: $('#date1').datebox("getText"),
+//            date2: $('#date2').datebox("getText"),
+//            cg: $('#cg').combobox("getText")
+//        }
+//    });
+
+//    var queryParams = $('#grid').datagrid('options').queryParams;
+//    queryParams.date1 = $('#date1').datebox("getText");
+//    queryParams.date2 = $('#date2').datebox("getText");
+//    queryParams.cg = $('#cg').combobox("getText");
+//    $('#grid').datagrid('options').queryParams = queryParams;
+    $("#grid").datagrid('reload');
+
+    $('#gridt').datagrid('options').url = 'ajax/AccountBook.ashx?action=hightsearch&type=sum&date1=' + $('#date1').datebox("getText") + '&date2=' + $('#date2').datebox("getText") + '&cg=' + $('#cg').combobox("getText");
+    $('#gridt').datagrid("reload");
+
+}
+function closeSearchWindow() {
+    searchWin.window('close');
+}
+function showAll() {
+    grid.datagrid({ url: 'ajax/AccountBook.ashx?action=get' });
+    gridt.datagrid({ url: 'ajax/AccountBook.ashx?action=get&type=sum' });
+}
+//#endregion
+
+
+function editAccount(id) {
+    $('#ff').form('load', 'ajax/AccountBook.ashx?action=getsingle&id=' + id);
+    $('#ff').form.url = 'ajax/AccountBook.ashx?action=save&id=' + id;
+    $('#btnupdate').show();
+}
+function addAccount() {
+    $('#ff').form.url = 'ajax/AccountBook.ashx?action=save';
+    saveAccount();
+    $('#btnupdate').hide();
+}
+function saveAccount() {
+    $('#ff').form('submit', {
+        url: $('#ff').form.url,
+        onSubmit: function () {
+            return $(this).form('validate');
+        },
+        success: function (data) {
+            eval('data=' + data);
+            if (data.success) {
+                grid.datagrid('reload');
+                gridt.datagrid('reload');
+            } else {
+                $.messager.alert('错误', data.msg, 'error');
+            }
+        }
+    });
+}
+
+
+function delSelected() {
+    var arr = getSelectedArr();
+    if (arr.length > 0) {
+        del(arr.join(','));
+        updateActions();
+    } else {
+        $.messager.show({
+            title: '提示',
+            msg: '请先选择要删除的记录。',
+            showType: 'show'
+        });
+    }
+}
+function del(ids) {
+    $.messager.confirm('提示信息', '您确认要删除吗?', function (data) {
+        if (data) {
+            $.ajax({
+                url: 'ajax/AccountBook.ashx?action=del&id=' + ids,
+                type: 'GET',
+                timeout: 1000,
+                error: function () {
+                    $.messager.alert('错误', '删除失败!', 'error');
+                },
+                success: function (data) {
+                    eval('data=' + data);
+                    if (data.success) {
+                        grid.datagrid('reload');
+                        grid.datagrid('clearSelections');
+                        gridt.datagrid('reload');
+                    } else {
+                        $.messager.alert('错误', data.msg, 'error');
+                    }
+                }
+            });
+        }
+    });
+}
+function getSelectedArr() {
+    var ids = [];
+    var rows = grid.datagrid('getSelections');
+    for (var i = 0; i < rows.length; i++) {
+        ids.push(rows[i].RecordID);
+    }
+    return ids;
+}
+</script>
+</body>
+</html>
